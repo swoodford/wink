@@ -19,21 +19,25 @@ function fail(){
 }
 
 function getToken(){
-	getToken=$(curl -sX POST "$APIURL"oauth2/token \
-		-H "Content-Type: application/json" \
-		-d '
-		{
-			"client_id": "'"$client_id"'",
-	    	"client_secret": "'"$client_secret"'",
-		    "username": "'"$username"'",
-		    "password": "'"$password"'",
-		    "grant_type": "password"
-		} ')
+	if [ "$client_id" = "consumer_key_goes_here" ]; then
+		fail "You have not setup your credentials in the script!"
+	else
+		getToken=$(curl -sX POST "$APIURL"oauth2/token \
+			-H "Content-Type: application/json" \
+			-d '
+			{
+				"client_id": "'"$client_id"'",
+				"client_secret": "'"$client_secret"'",
+				"username": "'"$username"'",
+				"password": "'"$password"'",
+				"grant_type": "password"
+			} ')
+	fi
 
 	# echo $getToken | jq .
 
 	access_token=$(echo $getToken | jq '.access_token' | cut -d '"' -f 2)
-	# echo $access_token
+	echo $access_token
 	# refresh_token=$(echo $getToken | jq '.refresh_token' | cut -d '"' -f 2)
 	# echo $refresh_token
 }
@@ -61,7 +65,7 @@ function getRobots(){
 
 # Turn a light bulb on or off and set brightness level
 function updateDevice(){
-	updateDevice=$(curl -vX PUT "$APIURL"/"$1"/"$2" \
+	updateDevice=$(curl -sX PUT "$APIURL"/"$1"/"$2" \
 		-H "Authorization: Bearer $access_token" \
 		-H "Content-Type: application/json" \
 		--data-binary '{
