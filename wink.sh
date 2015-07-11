@@ -37,7 +37,9 @@ function getToken(){
 	# echo $getToken | jq .
 
 	access_token=$(echo $getToken | jq '.access_token' | cut -d '"' -f 2)
-	echo $access_token
+	if [ "$access_token" = "null" ]; then
+		fail "Unable to get valid access token."
+	fi
 	# refresh_token=$(echo $getToken | jq '.refresh_token' | cut -d '"' -f 2)
 	# echo $refresh_token
 }
