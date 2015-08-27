@@ -58,6 +58,13 @@ function retrieveAllDevices(){
 	echo $retrieveAllDevices | jq .
 }
 
+function retrieveLightBulbIDs(){
+	retrieveLightBulbIDs=$(curl -s "$APIURL"/users/me/light_bulbs \
+		-H "Authorization: Bearer $access_token")
+
+	bulbIDs=$(echo $retrieveLightBulbIDs | jq . | grep light_bulb_id | cut -d \" -f4)
+}
+
 function getRobots(){
 	getRobots=$(curl -s "$APIURL"/users/me/robots \
 		-H "Authorization: Bearer $access_token")
@@ -73,11 +80,48 @@ function updateDevice(){
 		--data-binary '{
 			"desired_state": {
 				"powered": "'"$3"'",
-				"brightness": "1.00"
+				"brightness": "'"$4"'"
 			}
 		}')
 
 	echo $updateDevice | jq .
+}
+
+function lightsOn(){
+	for bulbid in $bulbIDs
+	do
+		updateDevice light_bulbs $bulbid true 1
+	done
+}
+
+function lightsOff(){
+	for bulbid in $bulbIDs
+	do
+		updateDevice light_bulbs $bulbid false 0
+	done
+}
+
+
+function fadeLightsOn(){
+	for brightnesslevel in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+	do
+		for bulbid in $bulbIDs
+		do
+			updateDevice light_bulbs $bulbid true $brightnesslevel
+			sleep 1
+		done
+	done
+}
+
+function fadeLightsOff(){
+	for brightnesslevel in 1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0
+	do
+		for bulbid in $bulbIDs
+		do
+			updateDevice light_bulbs $bulbid true $brightnesslevel
+			sleep 1
+		done
+	done
 }
 
 # Check required commands
@@ -87,8 +131,11 @@ check_command "jq"
 getToken
 
 # List all your devices
-retrieveAllDevices
+# retrieveAllDevices
 
 # Do Something - Turn on a lightbulb
-updateDevice light_bulbs {your_lightbulb_id_000000} true
+# updateDevice light_bulbs {your_lightbulb_id_000000} true 1.00
 
+retrieveLightBulbIDs
+
+fadeLightsOn
