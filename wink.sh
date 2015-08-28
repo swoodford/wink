@@ -122,6 +122,11 @@ function fadeLightsOff(){
 			sleep 1
 		done
 	done
+
+	for bulbid in $bulbIDs
+	do
+		updateDevice light_bulbs $bulbid false 0
+	done
 }
 
 # Check required commands
@@ -138,4 +143,4 @@ getToken
 
 retrieveLightBulbIDs
 
-fadeLightsOn
+fadeLightsOff
