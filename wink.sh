@@ -271,6 +271,20 @@ function ACFan(){
 	done
 }
 
+function GetCurrentAverageTemp(){
+	totaltemp=0
+	temps=$(echo $retrieveAirConditioners | jq '.data | .[] | .last_reading | .temperature')
+	numtemps=$(echo "$temps" | wc -l)
+	starttemps=1
+	for (( COUNT=$starttemps; COUNT<=$numtemps; COUNT++ ))
+	do
+		currenttemp=$(echo "$temps" | nl | grep -w $COUNT | cut -f2)
+		totaltemp=$(echo "scale=10; $currenttemp + $totaltemp" | bc)
+	done
+	averageTemp=$(echo "scale=10; $totaltemp / $numtemps" | bc)
+	tempF=$(echo "scale=1; 9*$averageTemp/5+32" | bc)
+}
+
 # Check required commands
 check_command "jq"
 check_command "curl"
