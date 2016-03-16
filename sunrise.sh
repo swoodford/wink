@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script uses the Wink API to give a lightbulb a sunrise effect over 10 minutes
+# This script uses the Wink API to turn on a lightbulb with a sunrise effect by gradually increasing bulb brightness over time
 # Requires jq, curl
 
 # Set credentials
@@ -53,9 +53,7 @@ function retrieveLightBulbIDs(){
 
 # Turn a light bulb on or off and set brightness level
 function updateLightbulb(){
-	echo "$APIURL"/light_bulb/"$1"
-	# pause
-	updateLightbulb=$(curl -sX PUT "$APIURL"/light_bulb/"$1" \
+	updateLightbulb=$(curl -sX PUT "$APIURL"/light_bulbs/"$1" \
 		-H "Authorization: Bearer $access_token" \
 		-H "Content-Type: application/json" \
 		--data-binary '{
@@ -64,34 +62,38 @@ function updateLightbulb(){
 				"brightness": "'"$3"'"
 			}
 		}')
-	echo $updateLightbulb # | jq .
+	# echo $updateLightbulb | jq .
 	# pause
 
 	result=$(echo $updateLightbulb | jq '.errors != null')
 
-	if [[ "$result" == "0" ]]; then
-		name=$(echo $updateLightbulb | jq '.data | .name')
-		tput setaf 2; echo $name Successful && tput sgr0
+	if [ $result = "true" ]; then
+		name=$(echo $updateLightbulb | jq '.data | .name' | cut -d \" -f2)
+		tput setaf 2; echo $name: $brightnesslevel && tput sgr0
 	else
 		failwithoutexit $(echo $updateLightbulb | jq '.errors')
 	fi
 }
 
+# The actual brightness level maxes out around 0.30 with an interval increase of .005
 function sunrise(){
-	echo Sunrise Effect on Lightbulb over 10 minutes...
+	echo Starting sunrise effect on lightbulb over 20 minutes...
 
-	for ((i=0; i < 101; i += 1))
+	for ((i=0; i < 301; i += 5))
 	do
-		echo brightnesslevel: "scale=2; ${i}/100" | bc
-		brightnesslevel=$(echo "scale=2; ${i}/100" | bc)
+		# echo brightnesslevel: "scale=2; ${i}/100" | bc
+		brightnesslevel=$(echo "scale=3; ${i}/1000" | bc)
+		# echo $brightnesslevel
 		updateLightbulb $bulbid true $brightnesslevel
-		sleep 6
-
+		sleep 20
 	done
+	brightnesslevel="1.0"
+	updateLightbulb $bulbid true $brightnesslevel
 }
 
 # Check required commands
 check_command "bc"
+check_command "curl"
 check_command "jq"
 
 # Get Token
@@ -99,10 +101,11 @@ getToken
 
 # retrieveLightBulbIDs
 
-bulbid="xxxxxxxx"
-brightnesslevel="0"
+# Manually set Bulb ID
+bulbid="xxxxxxx"
+# brightnesslevel="0"
 
-updateLightbulb $bulbid true $brightnesslevel
+# updateLightbulb $bulbid true $brightnesslevel
 
 # Sunrise
-# sunrise
+sunrise
