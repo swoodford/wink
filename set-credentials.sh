@@ -6,7 +6,7 @@ client_id="consumer_key_goes_here"
 client_secret="consumer_secret_goes_here"
 username="user@example.com"
 password="password_goes_here"
-APIURL="https://winkapi.quirky.com/"
+APIURL="https://api.wink.com"
 
 function getToken(){
 	if [ "$client_id" = "consumer_key_goes_here" ]; then
